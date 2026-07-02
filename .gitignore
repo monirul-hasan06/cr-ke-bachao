@@ -1,10 +1,4 @@
-../../g3 architect/
-../../girlsportfolio/
-../../kamerbedi/
-../../me & you/
-../../metalix/
-../../msn/
-../../project/
-../../task manager/
-../../website_practice_1/
-node_modules/
+node_modules
+dist
+.env
+.DS_Store

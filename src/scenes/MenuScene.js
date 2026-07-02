@@ -26,7 +26,7 @@ export default class MenuScene extends Phaser.Scene {
       strokeThickness: 5,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, 113, "Realistic Cartoon Action Edition", {
+    this.add.text(width / 2, 113, "", {
       fontSize: "19px",
       color: "#cbd5e1",
       fontStyle: "bold",
@@ -34,17 +34,17 @@ export default class MenuScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, 164, "CR Name", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 164, "CR Name(editable)", this.labelStyle()).setOrigin(0.5);
     this.crInput = this.add.dom(width / 2, 203).createFromHTML(
       '<input class="game-input" name="crName" maxlength="12" value="CR" placeholder="CR Name">'
     );
 
-    this.add.text(width / 2, 260, "Player Name", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 260, "Player Name(editable)", this.labelStyle()).setOrigin(0.5);
     this.playerInput = this.add.dom(width / 2, 299).createFromHTML(
       '<input class="game-input" name="playerName" maxlength="12" value="YOU" placeholder="Player Name">'
     );
 
-    this.add.text(width / 2, 356, "Anime/Enemy Names (Optional)", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 356, "Enemy Names (Optional, click + to add)", this.labelStyle()).setOrigin(0.5);
     this.enemyInput = this.add.dom(315, 395).createFromHTML(
       '<input class="game-input" style="width:330px" name="enemyName" maxlength="12" value="" placeholder="Type name, then press +">'
     );
@@ -83,29 +83,28 @@ export default class MenuScene extends Phaser.Scene {
     this.campusBtn = this.makeButton(360, 773, "Campus", () => this.setTheme("campus"), 150);
     this.examBtn = this.makeButton(565, 773, "Exam Hall", () => this.setTheme("exam"), 170);
 
-    this.soundBtn = this.makeButton(width / 2, 856, this.soundOn ? "Sound: ON" : "Sound: OFF", () => {
+    this.soundBtn = this.makeButton(230, 846, this.soundOn ? "Sound: ON" : "Sound: OFF", () => {
       this.soundOn = !this.soundOn;
       localStorage.setItem("crSoundOn", String(this.soundOn));
       this.soundBtn.text.setText(this.soundOn ? "Sound: ON" : "Sound: OFF");
       this.playClick();
-    }, 260);
+    }, 220);
 
-    
-    this.vibrationBtn = this.makeButton(width / 2, 925, this.vibrationOn ? "Vibration: ON" : "Vibration: OFF", () => {
+    this.vibrationBtn = this.makeButton(490, 846, this.vibrationOn ? "Vibration: ON" : "Vibration: OFF", () => {
       this.vibrationOn = !this.vibrationOn;
       localStorage.setItem("crVibrationOn", String(this.vibrationOn));
       this.vibrationBtn.text.setText(this.vibrationOn ? "Vibration: ON" : "Vibration: OFF");
       this.playClick();
       if (this.vibrationOn && navigator.vibrate) navigator.vibrate(25);
-    }, 310);
+    }, 245);
 
-    this.installBtn = this.makeButton(width / 2, 1005, "INSTALL APP", () => this.installApp(), 310);
+    this.startBtn = this.makeButton(width / 2, 930, "START GAME", () => this.startGame(), 430, true);
+
+    this.installBtn = this.makeButton(width / 2, 1015, "INSTALL APP", () => this.installApp(), 310);
     this.updateInstallButton();
 
     window.addEventListener("cr-pwa-ready", () => this.updateInstallButton());
     window.addEventListener("cr-pwa-installed", () => this.updateInstallButton());
-
-this.startBtn = this.makeButton(width / 2, 954, "START GAME", () => this.startGame(), 430, true);
 
     this.add.text(width / 2, height - 112, "Names added with + will spawn mixed with nameless default enemies\nMobile: tap enemy / joystick / slash / dash", {
       fontSize: "18px",
@@ -212,6 +211,65 @@ this.startBtn = this.makeButton(width / 2, 954, "START GAME", () => this.startGa
 
   playClick() {
     if (this.soundOn) this.sound.play("snd_click", { volume: 0.45 });
+  }
+
+
+  updateInstallButton() {
+    if (!this.installBtn) return;
+
+    const isStandalone = window.crIsInstalled || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    const hasPrompt = Boolean(window.crDeferredInstallPrompt);
+
+    if (isStandalone) {
+      this.installBtn.text.setText("APP INSTALLED");
+      this.installBtn.bg.setAlpha(0.55);
+      return;
+    }
+
+    this.installBtn.text.setText("INSTALL APP");
+    this.installBtn.bg.setAlpha(hasPrompt ? 1 : 0.88);
+  }
+
+  async installApp() {
+    this.playClick();
+
+    const isStandalone = window.crIsInstalled || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    if (isStandalone) {
+      this.showMenuMessage("Already installed");
+      return;
+    }
+
+    if (!window.crRequestInstall || !window.crDeferredInstallPrompt) {
+      this.showMenuMessage("Deploy to HTTPS, then tap Install App");
+      return;
+    }
+
+    const result = await window.crRequestInstall();
+    if (result === "accepted") {
+      this.showMenuMessage("Installing app...");
+    } else {
+      this.showMenuMessage("Install cancelled");
+    }
+    this.updateInstallButton();
+  }
+
+  showMenuMessage(message) {
+    if (this.menuMessage) this.menuMessage.destroy();
+
+    this.menuMessage = this.add.text(this.scale.width / 2, 1082, message, {
+      fontSize: "18px",
+      color: "#e2e8f0",
+      fontStyle: "bold",
+      stroke: "#000000",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(300);
+
+    this.time.delayedCall(2300, () => {
+      if (this.menuMessage) {
+        this.menuMessage.destroy();
+        this.menuMessage = null;
+      }
+    });
   }
 
   startGame() {

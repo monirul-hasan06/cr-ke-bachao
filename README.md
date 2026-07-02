@@ -99,3 +99,7 @@ This version uses the uploaded game banner to generate:
 
 The PWA install logo also uses the banner-derived app icon through `manifest.webmanifest`.
 
+
+## Fix Note
+
+Fixed MenuScene Install App methods and adjusted button layout to avoid overlap.
