@@ -3,10 +3,51 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/assets/icons/icon-512.png" />
+    <meta name="theme-color" content="#dc2626" />
     <title>CR কে বাঁচাও — Realistic Cartoon V3</title>
   </head>
   <body>
     <div id="game-container"></div>
+
+    <script>
+      window.crDeferredInstallPrompt = null;
+      window.crIsInstalled = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+
+      window.addEventListener("beforeinstallprompt", function (event) {
+        event.preventDefault();
+        window.crDeferredInstallPrompt = event;
+        window.dispatchEvent(new Event("cr-pwa-ready"));
+      });
+
+      window.addEventListener("appinstalled", function () {
+        window.crDeferredInstallPrompt = null;
+        window.crIsInstalled = true;
+        window.dispatchEvent(new Event("cr-pwa-installed"));
+      });
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/sw.js").catch(function () {});
+        });
+      }
+
+      window.crRequestInstall = async function () {
+        if (!window.crDeferredInstallPrompt) return "not-ready";
+        const promptEvent = window.crDeferredInstallPrompt;
+        window.crDeferredInstallPrompt = null;
+        promptEvent.prompt();
+        const choice = await promptEvent.userChoice.catch(function () {
+          return { outcome: "dismissed" };
+        });
+        return choice && choice.outcome ? choice.outcome : "dismissed";
+      };
+    </script>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

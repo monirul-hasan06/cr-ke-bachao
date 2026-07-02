@@ -68,3 +68,34 @@ The start menu now includes **Enemy Name / Anime Name (Optional)**.
 - Boss wave এলে label হবে `Boss + your enemy name`.
 
 This is optional, so the game can stay clean when no enemy name is needed.
+
+
+## PWA + Vibration Update
+
+Added in this version:
+
+- Vibration ON/OFF option in main menu
+- Manual Install App button in main menu
+- No automatic install popup when user opens the game link
+- PWA install prompt appears only after clicking the Install App button, if the browser supports it
+- Favicon and app icons added
+- Manifest and service worker added
+
+### Important PWA note
+
+For install to work on phone, the game should be served from a secure HTTPS live link, such as Vercel. Local WiFi test is good for gameplay, but PWA install usually works best after deploying.
+
+
+## Banner-based App Icon Update
+
+This version uses the uploaded game banner to generate:
+
+- `public/favicon.png`
+- `public/favicon.ico`
+- `public/assets/icons/icon-192.png`
+- `public/assets/icons/icon-512.png`
+- `public/assets/icons/app-icon-source.png`
+- `public/assets/branding/game-banner.png`
+
+The PWA install logo also uses the banner-derived app icon through `manifest.webmanifest`.
+

@@ -19,6 +19,7 @@ export default class GameScene extends Phaser.Scene {
     this.playerGender = data.playerGender || "male";
     this.theme = data.theme || "classroom";
     this.soundOn = data.soundOn !== false;
+    this.vibrationOn = data.vibrationOn !== false;
   }
 
   create() {
@@ -468,7 +469,7 @@ export default class GameScene extends Phaser.Scene {
     this.weaponSound(enemy.isBoss);
     this.hitStop(enemy.isBoss ? 55 : 35);
 
-    if (navigator.vibrate) navigator.vibrate(enemy.isBoss ? 60 : 35);
+    this.vibrate(enemy.isBoss ? 60 : 35);
 
     this.playerLunge(angle);
     this.createKnifeSlash(enemy.x, enemy.y, angle, enemy.isBoss ? 96 : 68);
@@ -906,6 +907,12 @@ export default class GameScene extends Phaser.Scene {
     this.showFloatingText(text, this.scale.width / 2, 160, "#facc15");
   }
 
+  vibrate(duration = 30) {
+    if (this.vibrationOn && navigator.vibrate) {
+      navigator.vibrate(duration);
+    }
+  }
+
   playSound(key, volume = 0.3) {
     if (this.soundOn) this.sound.play(key, { volume });
   }
@@ -927,6 +934,7 @@ export default class GameScene extends Phaser.Scene {
         playerGender: this.playerGender,
         theme: this.theme,
         soundOn: this.soundOn,
+      vibrationOn: this.vibrationOn,
       },
     });
   }
@@ -951,6 +959,7 @@ export default class GameScene extends Phaser.Scene {
         playerGender: this.playerGender,
         theme: this.theme,
         soundOn: this.soundOn,
+      vibrationOn: this.vibrationOn,
       },
     });
   }

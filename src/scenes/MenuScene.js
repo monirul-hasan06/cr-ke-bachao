@@ -10,6 +10,7 @@ export default class MenuScene extends Phaser.Scene {
     this.playerGender = "male";
     this.theme = "classroom";
     this.soundOn = localStorage.getItem("crSoundOn") !== "false";
+    this.vibrationOn = localStorage.getItem("crVibrationOn") !== "false";
     this.enemyNames = [];
 
     const { width, height } = this.scale;
@@ -25,7 +26,7 @@ export default class MenuScene extends Phaser.Scene {
       strokeThickness: 5,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, 113, "", {
+    this.add.text(width / 2, 113, "Realistic Cartoon Action Edition", {
       fontSize: "19px",
       color: "#cbd5e1",
       fontStyle: "bold",
@@ -33,17 +34,17 @@ export default class MenuScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, 164, "CR Name(editable)", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 164, "CR Name", this.labelStyle()).setOrigin(0.5);
     this.crInput = this.add.dom(width / 2, 203).createFromHTML(
       '<input class="game-input" name="crName" maxlength="12" value="CR" placeholder="CR Name">'
     );
 
-    this.add.text(width / 2, 260, "Player Name(editable)", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 260, "Player Name", this.labelStyle()).setOrigin(0.5);
     this.playerInput = this.add.dom(width / 2, 299).createFromHTML(
       '<input class="game-input" name="playerName" maxlength="12" value="YOU" placeholder="Player Name">'
     );
 
-    this.add.text(width / 2, 356, "Enemy Names (Optional, + for add more )", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 356, "Anime/Enemy Names (Optional)", this.labelStyle()).setOrigin(0.5);
     this.enemyInput = this.add.dom(315, 395).createFromHTML(
       '<input class="game-input" style="width:330px" name="enemyName" maxlength="12" value="" placeholder="Type name, then press +">'
     );
@@ -89,7 +90,22 @@ export default class MenuScene extends Phaser.Scene {
       this.playClick();
     }, 260);
 
-    this.startBtn = this.makeButton(width / 2, 954, "START GAME", () => this.startGame(), 430, true);
+    
+    this.vibrationBtn = this.makeButton(width / 2, 925, this.vibrationOn ? "Vibration: ON" : "Vibration: OFF", () => {
+      this.vibrationOn = !this.vibrationOn;
+      localStorage.setItem("crVibrationOn", String(this.vibrationOn));
+      this.vibrationBtn.text.setText(this.vibrationOn ? "Vibration: ON" : "Vibration: OFF");
+      this.playClick();
+      if (this.vibrationOn && navigator.vibrate) navigator.vibrate(25);
+    }, 310);
+
+    this.installBtn = this.makeButton(width / 2, 1005, "INSTALL APP", () => this.installApp(), 310);
+    this.updateInstallButton();
+
+    window.addEventListener("cr-pwa-ready", () => this.updateInstallButton());
+    window.addEventListener("cr-pwa-installed", () => this.updateInstallButton());
+
+this.startBtn = this.makeButton(width / 2, 954, "START GAME", () => this.startGame(), 430, true);
 
     this.add.text(width / 2, height - 112, "Names added with + will spawn mixed with nameless default enemies\nMobile: tap enemy / joystick / slash / dash", {
       fontSize: "18px",
@@ -215,6 +231,7 @@ export default class MenuScene extends Phaser.Scene {
       playerGender: this.playerGender,
       theme: this.theme,
       soundOn: this.soundOn,
+      vibrationOn: this.vibrationOn,
     });
   }
 }
