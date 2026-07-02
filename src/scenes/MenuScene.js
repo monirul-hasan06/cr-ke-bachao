@@ -6,37 +6,20 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   create() {
+    const { width, height } = this.scale;
+
     this.crGender = "male";
     this.playerGender = "male";
     this.theme = "classroom";
     this.soundOn = localStorage.getItem("crSoundOn") !== "false";
     this.vibrationOn = localStorage.getItem("crVibrationOn") !== "false";
     this.enemyNames = [];
-    this.startBtn = this.makeButton(width / 2, 1015, "START GAME", () => this.startGame(), 430, true);
 
-    this.add.text(width / 2, 1085, "Made by ", {
-  fontSize: "18px",
-  color: "#cbd5e1",
-  fontStyle: "bold",
-  stroke: "#000000",
-  strokeThickness: 3,
-}).setOrigin(1, 0.5).setDepth(300);
+    this.bg = this.add
+      .image(width / 2, height / 2, "bg_classroom")
+      .setDisplaySize(width, height)
+      .setAlpha(0.55);
 
-const techCanvixLink = this.add.text(width / 2, 1085, "TechCanvix", {
-  fontSize: "18px",
-  color: "#22c55e",
-  fontStyle: "bold",
-  stroke: "#000000",
-  strokeThickness: 3,
-}).setOrigin(0, 0.5).setDepth(300).setInteractive({ useHandCursor: true });
-
-techCanvixLink.on("pointerdown", () => {
-  window.open("https://www.facebook.com/techcanvix", "_blank");
-});
-
-    const { width, height } = this.scale;
-
-    this.bg = this.add.image(width / 2, height / 2, "bg_classroom").setDisplaySize(width, height).setAlpha(0.55);
     this.add.rectangle(width / 2, height / 2, width, height, 0x020617, 0.48);
 
     this.add.text(width / 2, 68, "CR কে বাঁচাও", {
@@ -56,32 +39,47 @@ techCanvixLink.on("pointerdown", () => {
     }).setOrigin(0.5);
 
     this.add.text(width / 2, 164, "CR Name(editable)", this.labelStyle()).setOrigin(0.5);
+
     this.crInput = this.add.dom(width / 2, 203).createFromHTML(
       '<input class="game-input" name="crName" maxlength="12" value="CR" placeholder="CR Name">'
     );
 
     this.add.text(width / 2, 260, "Player Name(editable)", this.labelStyle()).setOrigin(0.5);
+
     this.playerInput = this.add.dom(width / 2, 299).createFromHTML(
       '<input class="game-input" name="playerName" maxlength="12" value="YOU" placeholder="Player Name">'
     );
 
-    this.add.text(width / 2, 356, "Enemy Names (Optional,click + to add more)", this.labelStyle()).setOrigin(0.5);
+    this.add.text(
+      width / 2,
+      356,
+      "Enemy Names (Optional,click + to add more)",
+      this.labelStyle()
+    ).setOrigin(0.5);
+
     this.enemyInput = this.add.dom(315, 395).createFromHTML(
       '<input class="game-input" style="width:330px" name="enemyName" maxlength="12" value="" placeholder="Type name, then press +">'
     );
+
     this.addNameBtn = this.makeButton(570, 395, "+", () => this.addEnemyName(), 70);
     this.clearNameBtn = this.makeButton(650, 395, "Clear", () => this.clearEnemyNames(), 92);
 
-    this.nameListText = this.add.text(width / 2, 443, "No names added — nameless enemies will still appear", {
-      fontSize: "17px",
-      color: "#cbd5e1",
-      fontStyle: "bold",
-      align: "center",
-      stroke: "#000000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    this.nameListText = this.add.text(
+      width / 2,
+      443,
+      "No names added — nameless enemies will still appear",
+      {
+        fontSize: "17px",
+        color: "#cbd5e1",
+        fontStyle: "bold",
+        align: "center",
+        stroke: "#000000",
+        strokeThickness: 3,
+      }
+    ).setOrigin(0.5);
 
     const enemyNode = this.enemyInput.getChildByName("enemyName");
+
     if (enemyNode) {
       enemyNode.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
@@ -92,50 +90,107 @@ techCanvixLink.on("pointerdown", () => {
     }
 
     this.add.text(width / 2, 500, "CR Gender", this.labelStyle()).setOrigin(0.5);
+
     this.crMaleBtn = this.makeButton(235, 548, "Male CR", () => this.setCRGender("male"));
     this.crFemaleBtn = this.makeButton(485, 548, "Female CR", () => this.setCRGender("female"));
 
     this.add.text(width / 2, 613, "Player Gender", this.labelStyle()).setOrigin(0.5);
+
     this.playerMaleBtn = this.makeButton(235, 661, "Male Player", () => this.setPlayerGender("male"));
     this.playerFemaleBtn = this.makeButton(485, 661, "Female Player", () => this.setPlayerGender("female"));
 
     this.add.text(width / 2, 725, "Background", this.labelStyle()).setOrigin(0.5);
+
     this.classBtn = this.makeButton(155, 773, "Classroom", () => this.setTheme("classroom"), 160);
     this.campusBtn = this.makeButton(360, 773, "Campus", () => this.setTheme("campus"), 150);
     this.examBtn = this.makeButton(565, 773, "Exam Hall", () => this.setTheme("exam"), 170);
 
-    this.soundBtn = this.makeButton(230, 846, this.soundOn ? "Sound: ON" : "Sound: OFF", () => {
-      this.soundOn = !this.soundOn;
-      localStorage.setItem("crSoundOn", String(this.soundOn));
-      this.soundBtn.text.setText(this.soundOn ? "Sound: ON" : "Sound: OFF");
-      this.playClick();
-    }, 220);
+    this.soundBtn = this.makeButton(
+      230,
+      846,
+      this.soundOn ? "Sound: ON" : "Sound: OFF",
+      () => {
+        this.soundOn = !this.soundOn;
+        localStorage.setItem("crSoundOn", String(this.soundOn));
+        this.soundBtn.text.setText(this.soundOn ? "Sound: ON" : "Sound: OFF");
+        this.playClick();
+      },
+      220
+    );
 
-    this.vibrationBtn = this.makeButton(490, 846, this.vibrationOn ? "Vibration: ON" : "Vibration: OFF", () => {
-      this.vibrationOn = !this.vibrationOn;
-      localStorage.setItem("crVibrationOn", String(this.vibrationOn));
-      this.vibrationBtn.text.setText(this.vibrationOn ? "Vibration: ON" : "Vibration: OFF");
-      this.playClick();
-      if (this.vibrationOn && navigator.vibrate) navigator.vibrate(25);
-    }, 245);
+    this.vibrationBtn = this.makeButton(
+      490,
+      846,
+      this.vibrationOn ? "Vibration: ON" : "Vibration: OFF",
+      () => {
+        this.vibrationOn = !this.vibrationOn;
+        localStorage.setItem("crVibrationOn", String(this.vibrationOn));
+        this.vibrationBtn.text.setText(this.vibrationOn ? "Vibration: ON" : "Vibration: OFF");
+        this.playClick();
 
-    this.startBtn = this.makeButton(width / 2, 930, "START GAME", () => this.startGame(), 430, true);
+        if (this.vibrationOn && navigator.vibrate) {
+          navigator.vibrate(25);
+        }
+      },
+      245
+    );
 
-    this.installBtn = this.makeButton(width / 2, 1015, "INSTALL APP", () => this.installApp(), 310);
+    this.startBtn = this.makeButton(
+      width / 2,
+      930,
+      "START GAME",
+      () => this.startGame(),
+      430,
+      true
+    );
+
+    this.installBtn = this.makeButton(
+      width / 2,
+      1015,
+      "INSTALL APP",
+      () => this.installApp(),
+      310
+    );
+
     this.updateInstallButton();
+
+    this.add.text(width / 2, 1085, "Made by ", {
+      fontSize: "18px",
+      color: "#cbd5e1",
+      fontStyle: "bold",
+      stroke: "#000000",
+      strokeThickness: 3,
+    }).setOrigin(1, 0.5).setDepth(300);
+
+    const techCanvixLink = this.add.text(width / 2, 1085, "TechCanvix", {
+      fontSize: "18px",
+      color: "#22c55e",
+      fontStyle: "bold",
+      stroke: "#000000",
+      strokeThickness: 3,
+    }).setOrigin(0, 0.5).setDepth(300).setInteractive({ useHandCursor: true });
+
+    techCanvixLink.on("pointerdown", () => {
+      window.open("https://www.facebook.com/techcanvix", "_blank");
+    });
 
     window.addEventListener("cr-pwa-ready", () => this.updateInstallButton());
     window.addEventListener("cr-pwa-installed", () => this.updateInstallButton());
 
-    this.add.text(width / 2, height - 112, "Names added with + will spawn mixed with nameless default enemies\nMobile: tap enemy / joystick / slash / dash", {
-      fontSize: "18px",
-      color: "#94a3b8",
-      fontStyle: "bold",
-      align: "center",
-      lineSpacing: 8,
-      stroke: "#000000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    this.add.text(
+      width / 2,
+      height - 112,
+      "Names added with + will spawn mixed with nameless default enemies\nMobile: tap enemy / joystick / slash / dash",
+      {
+        fontSize: "18px",
+        color: "#94a3b8",
+        fontStyle: "bold",
+        align: "center",
+        lineSpacing: 8,
+        stroke: "#000000",
+        strokeThickness: 3,
+      }
+    ).setOrigin(0.5);
 
     this.refreshButtons();
     this.refreshNameList();
@@ -152,7 +207,8 @@ techCanvixLink.on("pointerdown", () => {
   }
 
   makeButton(x, y, label, callback, w = 220, primary = false) {
-    const bg = this.add.rectangle(x, y, w, 56, primary ? 0xef4444 : 0x1e293b, 18)
+    const bg = this.add
+      .rectangle(x, y, w, 56, primary ? 0xef4444 : 0x1e293b, 18)
       .setStrokeStyle(2, primary ? 0xfca5a5 : 0x475569, 0.75)
       .setInteractive({ useHandCursor: true });
 
@@ -176,11 +232,21 @@ techCanvixLink.on("pointerdown", () => {
   addEnemyName() {
     const node = this.enemyInput.getChildByName("enemyName");
     const name = (node?.value || "").trim().slice(0, 12);
+
     if (!name) return;
 
-    const exists = this.enemyNames.some((item) => item.toLowerCase() === name.toLowerCase());
-    if (!exists) this.enemyNames.push(name);
-    if (node) node.value = "";
+    const exists = this.enemyNames.some(
+      (item) => item.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!exists) {
+      this.enemyNames.push(name);
+    }
+
+    if (node) {
+      node.value = "";
+    }
+
     this.refreshNameList();
   }
 
@@ -191,6 +257,7 @@ techCanvixLink.on("pointerdown", () => {
 
   refreshNameList() {
     if (!this.nameListText) return;
+
     if (this.enemyNames.length === 0) {
       this.nameListText.setText("No names added — nameless enemies will still appear");
       return;
@@ -198,7 +265,10 @@ techCanvixLink.on("pointerdown", () => {
 
     const preview = this.enemyNames.slice(0, 5).join(", ");
     const extra = this.enemyNames.length > 5 ? ` +${this.enemyNames.length - 5} more` : "";
-    this.nameListText.setText(`Added (${this.enemyNames.length}): ${preview}${extra}\nNamed + nameless enemies will spawn mixed`);
+
+    this.nameListText.setText(
+      `Added (${this.enemyNames.length}): ${preview}${extra}\nNamed + nameless enemies will spawn mixed`
+    );
   }
 
   setCRGender(gender) {
@@ -223,22 +293,28 @@ techCanvixLink.on("pointerdown", () => {
 
     this.crMaleBtn.bg.setFillStyle(this.crGender === "male" ? active : normal);
     this.crFemaleBtn.bg.setFillStyle(this.crGender === "female" ? active : normal);
+
     this.playerMaleBtn.bg.setFillStyle(this.playerGender === "male" ? active : normal);
     this.playerFemaleBtn.bg.setFillStyle(this.playerGender === "female" ? active : normal);
+
     this.classBtn.bg.setFillStyle(this.theme === "classroom" ? active : normal);
     this.campusBtn.bg.setFillStyle(this.theme === "campus" ? active : normal);
     this.examBtn.bg.setFillStyle(this.theme === "exam" ? active : normal);
   }
 
   playClick() {
-    if (this.soundOn) this.sound.play("snd_click", { volume: 0.45 });
+    if (this.soundOn) {
+      this.sound.play("snd_click", { volume: 0.45 });
+    }
   }
-
 
   updateInstallButton() {
     if (!this.installBtn) return;
 
-    const isStandalone = window.crIsInstalled || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    const isStandalone =
+      window.crIsInstalled ||
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
     const hasPrompt = Boolean(window.crDeferredInstallPrompt);
 
     if (isStandalone) {
@@ -254,7 +330,10 @@ techCanvixLink.on("pointerdown", () => {
   async installApp() {
     this.playClick();
 
-    const isStandalone = window.crIsInstalled || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+    const isStandalone =
+      window.crIsInstalled ||
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
     if (isStandalone) {
       this.showMenuMessage("Already installed");
       return;
@@ -266,18 +345,22 @@ techCanvixLink.on("pointerdown", () => {
     }
 
     const result = await window.crRequestInstall();
+
     if (result === "accepted") {
       this.showMenuMessage("Installing app...");
     } else {
       this.showMenuMessage("Install cancelled");
     }
+
     this.updateInstallButton();
   }
 
   showMenuMessage(message) {
-    if (this.menuMessage) this.menuMessage.destroy();
+    if (this.menuMessage) {
+      this.menuMessage.destroy();
+    }
 
-    this.menuMessage = this.add.text(this.scale.width / 2, 1082, message, {
+    this.menuMessage = this.add.text(this.scale.width / 2, 1125, message, {
       fontSize: "18px",
       color: "#e2e8f0",
       fontStyle: "bold",
