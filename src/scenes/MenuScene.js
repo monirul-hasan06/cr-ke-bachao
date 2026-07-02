@@ -12,6 +12,27 @@ export default class MenuScene extends Phaser.Scene {
     this.soundOn = localStorage.getItem("crSoundOn") !== "false";
     this.vibrationOn = localStorage.getItem("crVibrationOn") !== "false";
     this.enemyNames = [];
+    this.startBtn = this.makeButton(width / 2, 1015, "START GAME", () => this.startGame(), 430, true);
+
+    this.add.text(width / 2, 1085, "Made by ", {
+  fontSize: "18px",
+  color: "#cbd5e1",
+  fontStyle: "bold",
+  stroke: "#000000",
+  strokeThickness: 3,
+}).setOrigin(1, 0.5).setDepth(300);
+
+const techCanvixLink = this.add.text(width / 2, 1085, "TechCanvix", {
+  fontSize: "18px",
+  color: "#22c55e",
+  fontStyle: "bold",
+  stroke: "#000000",
+  strokeThickness: 3,
+}).setOrigin(0, 0.5).setDepth(300).setInteractive({ useHandCursor: true });
+
+techCanvixLink.on("pointerdown", () => {
+  window.open("https://www.facebook.com/techcanvix", "_blank");
+});
 
     const { width, height } = this.scale;
 
