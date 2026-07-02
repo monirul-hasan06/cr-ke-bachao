@@ -154,7 +154,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.updateInstallButton();
 
-    this.add.text(width / 2, 1085, "Made by ", {
+    this.add.text(width / 2, 1085, "Made with the team ", {
       fontSize: "18px",
       color: "#cbd5e1",
       fontStyle: "bold",
