@@ -44,7 +44,7 @@ export default class MenuScene extends Phaser.Scene {
       '<input class="game-input" name="playerName" maxlength="12" value="YOU" placeholder="Player Name">'
     );
 
-    this.add.text(width / 2, 356, "Enemy Names (Optional, click + to add)", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 356, "Enemy Names (Optional,click + to add more)", this.labelStyle()).setOrigin(0.5);
     this.enemyInput = this.add.dom(315, 395).createFromHTML(
       '<input class="game-input" style="width:330px" name="enemyName" maxlength="12" value="" placeholder="Type name, then press +">'
     );
