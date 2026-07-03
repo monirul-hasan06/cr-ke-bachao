@@ -21,56 +21,48 @@ export default class MenuScene extends Phaser.Scene {
       .setDisplaySize(width, height)
       .setAlpha(0.55);
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x020617, 0.48);
+    this.add.rectangle(width / 2, height / 2, width, height, 0x020617, 0.52);
 
-    this.add.text(width / 2, 68, "CR কে বাঁচাও", {
-      fontSize: "50px",
+    this.add.text(width / 2, 54, "CR কে বাঁচাও", {
+      fontSize: "46px",
       color: "#fecaca",
       fontStyle: "bold",
       stroke: "#000000",
       strokeThickness: 5,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, 113, "", {
-      fontSize: "19px",
-      color: "#cbd5e1",
-      fontStyle: "bold",
-      stroke: "#000000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    this.add.text(width / 2, 126, "CR Name (editable)", this.labelStyle()).setOrigin(0.5);
 
-    this.add.text(width / 2, 164, "CR Name(editable)", this.labelStyle()).setOrigin(0.5);
-
-    this.crInput = this.add.dom(width / 2, 203).createFromHTML(
+    this.crInput = this.add.dom(width / 2, 163).createFromHTML(
       '<input class="game-input" name="crName" maxlength="12" value="CR" placeholder="CR Name">'
     );
 
-    this.add.text(width / 2, 260, "Player Name(editable)", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 214, "Player Name (editable)", this.labelStyle()).setOrigin(0.5);
 
-    this.playerInput = this.add.dom(width / 2, 299).createFromHTML(
+    this.playerInput = this.add.dom(width / 2, 251).createFromHTML(
       '<input class="game-input" name="playerName" maxlength="12" value="YOU" placeholder="Player Name">'
     );
 
     this.add.text(
       width / 2,
-      356,
+      303,
       "Enemy Names (Optional, click + to add more)",
       this.labelStyle()
     ).setOrigin(0.5);
 
-    this.enemyInput = this.add.dom(315, 395).createFromHTML(
-      '<input class="game-input" style="width:330px" name="enemyName" maxlength="12" value="" placeholder="Type name, then press +">'
+    this.enemyInput = this.add.dom(300, 342).createFromHTML(
+      '<input class="game-input" style="width:315px" name="enemyName" maxlength="12" value="" placeholder="Type name, then press +">'
     );
 
-    this.addNameBtn = this.makeButton(570, 395, "+", () => this.addEnemyName(), 70);
-    this.clearNameBtn = this.makeButton(650, 395, "Clear", () => this.clearEnemyNames(), 92);
+    this.addNameBtn = this.makeButton(555, 342, "+", () => this.addEnemyName(), 70);
+    this.clearNameBtn = this.makeButton(638, 342, "Clear", () => this.clearEnemyNames(), 95);
 
     this.nameListText = this.add.text(
       width / 2,
-      443,
+      390,
       "No names added — nameless enemies will still appear",
       {
-        fontSize: "17px",
+        fontSize: "15px",
         color: "#cbd5e1",
         fontStyle: "bold",
         align: "center",
@@ -90,25 +82,25 @@ export default class MenuScene extends Phaser.Scene {
       });
     }
 
-    this.add.text(width / 2, 500, "CR Gender", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 438, "CR Gender", this.labelStyle()).setOrigin(0.5);
 
-    this.crMaleBtn = this.makeButton(235, 548, "Male CR", () => this.setCRGender("male"));
-    this.crFemaleBtn = this.makeButton(485, 548, "Female CR", () => this.setCRGender("female"));
+    this.crMaleBtn = this.makeButton(245, 482, "Male CR", () => this.setCRGender("male"), 205);
+    this.crFemaleBtn = this.makeButton(475, 482, "Female CR", () => this.setCRGender("female"), 205);
 
-    this.add.text(width / 2, 613, "Player Gender", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 534, "Player Gender", this.labelStyle()).setOrigin(0.5);
 
-    this.playerMaleBtn = this.makeButton(235, 661, "Male Player", () => this.setPlayerGender("male"));
-    this.playerFemaleBtn = this.makeButton(485, 661, "Female Player", () => this.setPlayerGender("female"));
+    this.playerMaleBtn = this.makeButton(245, 578, "Male Player", () => this.setPlayerGender("male"), 205);
+    this.playerFemaleBtn = this.makeButton(475, 578, "Female Player", () => this.setPlayerGender("female"), 205);
 
-    this.add.text(width / 2, 725, "Background", this.labelStyle()).setOrigin(0.5);
+    this.add.text(width / 2, 630, "Background", this.labelStyle()).setOrigin(0.5);
 
-    this.classBtn = this.makeButton(155, 773, "Classroom", () => this.setTheme("classroom"), 160);
-    this.campusBtn = this.makeButton(360, 773, "Campus", () => this.setTheme("campus"), 150);
-    this.examBtn = this.makeButton(565, 773, "Exam Hall", () => this.setTheme("exam"), 170);
+    this.classBtn = this.makeButton(160, 674, "Classroom", () => this.setTheme("classroom"), 160);
+    this.campusBtn = this.makeButton(360, 674, "Campus", () => this.setTheme("campus"), 150);
+    this.examBtn = this.makeButton(560, 674, "Exam Hall", () => this.setTheme("exam"), 170);
 
     this.soundBtn = this.makeButton(
       230,
-      846,
+      748,
       this.soundOn ? "Sound: ON" : "Sound: OFF",
       () => {
         this.soundOn = !this.soundOn;
@@ -116,12 +108,12 @@ export default class MenuScene extends Phaser.Scene {
         this.soundBtn.text.setText(this.soundOn ? "Sound: ON" : "Sound: OFF");
         this.playClick();
       },
-      220
+      230
     );
 
     this.vibrationBtn = this.makeButton(
       490,
-      846,
+      748,
       this.vibrationOn ? "Vibration: ON" : "Vibration: OFF",
       () => {
         this.vibrationOn = !this.vibrationOn;
@@ -133,12 +125,12 @@ export default class MenuScene extends Phaser.Scene {
           navigator.vibrate(25);
         }
       },
-      245
+      250
     );
 
     this.musicBtn = this.makeButton(
       width / 2,
-      890,
+      818,
       this.musicOn ? "Music: ON" : "Music: OFF",
       () => {
         this.musicOn = !this.musicOn;
@@ -151,7 +143,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.startBtn = this.makeButton(
       width / 2,
-      950,
+      895,
       "START GAME",
       () => this.startGame(),
       430,
@@ -160,7 +152,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.installBtn = this.makeButton(
       width / 2,
-      1035,
+      972,
       "INSTALL APP",
       () => this.installApp(),
       310
@@ -168,7 +160,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.updateInstallButton();
 
-    this.add.text(width / 2, 1105, "Made by ", {
+    this.add.text(width / 2, 1045, "Made by ", {
       fontSize: "18px",
       color: "#cbd5e1",
       fontStyle: "bold",
@@ -176,7 +168,7 @@ export default class MenuScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(1, 0.5).setDepth(300);
 
-    const techCanvixLink = this.add.text(width / 2, 1105, "TechCanvix", {
+    const techCanvixLink = this.add.text(width / 2, 1045, "TechCanvix", {
       fontSize: "18px",
       color: "#22c55e",
       fontStyle: "bold",
@@ -193,14 +185,14 @@ export default class MenuScene extends Phaser.Scene {
 
     this.add.text(
       width / 2,
-      height - 112,
+      height - 58,
       "Names added with + will spawn mixed with nameless default enemies\nMobile: joystick / slash / dash",
       {
-        fontSize: "18px",
+        fontSize: "15px",
         color: "#94a3b8",
         fontStyle: "bold",
         align: "center",
-        lineSpacing: 8,
+        lineSpacing: 6,
         stroke: "#000000",
         strokeThickness: 3,
       }
@@ -212,7 +204,7 @@ export default class MenuScene extends Phaser.Scene {
 
   labelStyle() {
     return {
-      fontSize: "21px",
+      fontSize: "19px",
       color: "#ffffff",
       fontStyle: "bold",
       stroke: "#000000",
@@ -222,14 +214,16 @@ export default class MenuScene extends Phaser.Scene {
 
   makeButton(x, y, label, callback, w = 220, primary = false) {
     const bg = this.add
-      .rectangle(x, y, w, 56, primary ? 0xef4444 : 0x1e293b, 18)
-      .setStrokeStyle(2, primary ? 0xfca5a5 : 0x475569, 0.75)
+      .rectangle(x, y, w, 54, primary ? 0xef4444 : 0x1e293b, 16)
+      .setStrokeStyle(2, primary ? 0xfca5a5 : 0x475569, 0.8)
       .setInteractive({ useHandCursor: true });
 
     const text = this.add.text(x, y, label, {
-      fontSize: primary ? "27px" : label === "+" ? "30px" : "18px",
+      fontSize: primary ? "25px" : label === "+" ? "30px" : "17px",
       color: "#ffffff",
       fontStyle: "bold",
+      stroke: "#000000",
+      strokeThickness: 2,
     }).setOrigin(0.5);
 
     const run = () => {
@@ -374,8 +368,8 @@ export default class MenuScene extends Phaser.Scene {
       this.menuMessage.destroy();
     }
 
-    this.menuMessage = this.add.text(this.scale.width / 2, 1125, message, {
-      fontSize: "18px",
+    this.menuMessage = this.add.text(this.scale.width / 2, 1098, message, {
+      fontSize: "17px",
       color: "#e2e8f0",
       fontStyle: "bold",
       stroke: "#000000",
