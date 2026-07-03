@@ -357,11 +357,11 @@ export default class GameScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(82);
     }
 
-    enemy.setInteractive({ useHandCursor: true });
-    enemy.on("pointerdown", (pointer) => {
-      pointer.event?.stopPropagation?.();
-      this.tapAttackEnemy(enemy);
-    });
+    // enemy.setInteractive({ useHandCursor: true });
+    // enemy.on("pointerdown", (pointer) => {
+    //   pointer.event?.stopPropagation?.();
+    //   this.tapAttackEnemy(enemy);
+    // });
 
     if (isBoss) {
       this.playSound("snd_boss", 0.45);
