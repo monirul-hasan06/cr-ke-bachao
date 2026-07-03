@@ -58,7 +58,7 @@ export default class GameScene extends Phaser.Scene {
     this.enemyNameQueue = Phaser.Utils.Array.Shuffle([...this.enemyNames]);
     this.enemySpawnCount = 0;
 
-    this.musicKeys = ["music_bg"];
+    this.musicKeys = ["music_Odommo"];
 
     this.currentMusicIndex = 0;
     this.shuffledMusicKeys = Phaser.Utils.Array.Shuffle([...this.musicKeys]);
