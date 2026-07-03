@@ -13,6 +13,7 @@ export default class MenuScene extends Phaser.Scene {
     this.theme = "classroom";
     this.soundOn = localStorage.getItem("crSoundOn") !== "false";
     this.vibrationOn = localStorage.getItem("crVibrationOn") !== "false";
+    this.musicOn = localStorage.getItem("crMusicOn") !== "false";
     this.enemyNames = [];
 
     this.bg = this.add
@@ -53,7 +54,7 @@ export default class MenuScene extends Phaser.Scene {
     this.add.text(
       width / 2,
       356,
-      "Enemy Names (Optional,click + to add more)",
+      "Enemy Names (Optional, click + to add more)",
       this.labelStyle()
     ).setOrigin(0.5);
 
@@ -135,9 +136,22 @@ export default class MenuScene extends Phaser.Scene {
       245
     );
 
+    this.musicBtn = this.makeButton(
+      width / 2,
+      890,
+      this.musicOn ? "Music: ON" : "Music: OFF",
+      () => {
+        this.musicOn = !this.musicOn;
+        localStorage.setItem("crMusicOn", String(this.musicOn));
+        this.musicBtn.text.setText(this.musicOn ? "Music: ON" : "Music: OFF");
+        this.playClick();
+      },
+      245
+    );
+
     this.startBtn = this.makeButton(
       width / 2,
-      930,
+      950,
       "START GAME",
       () => this.startGame(),
       430,
@@ -146,7 +160,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.installBtn = this.makeButton(
       width / 2,
-      1015,
+      1035,
       "INSTALL APP",
       () => this.installApp(),
       310
@@ -154,7 +168,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.updateInstallButton();
 
-    this.add.text(width / 2, 1085, "Made with the team ", {
+    this.add.text(width / 2, 1105, "Made by ", {
       fontSize: "18px",
       color: "#cbd5e1",
       fontStyle: "bold",
@@ -162,7 +176,7 @@ export default class MenuScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(1, 0.5).setDepth(300);
 
-    const techCanvixLink = this.add.text(width / 2, 1085, "TechCanvix", {
+    const techCanvixLink = this.add.text(width / 2, 1105, "TechCanvix", {
       fontSize: "18px",
       color: "#22c55e",
       fontStyle: "bold",
@@ -180,7 +194,7 @@ export default class MenuScene extends Phaser.Scene {
     this.add.text(
       width / 2,
       height - 112,
-      "Names added with + will spawn mixed with nameless default enemies\nMobile: tap enemy / joystick / slash / dash",
+      "Names added with + will spawn mixed with nameless default enemies\nMobile: joystick / slash / dash",
       {
         fontSize: "18px",
         color: "#94a3b8",
@@ -394,6 +408,7 @@ export default class MenuScene extends Phaser.Scene {
       theme: this.theme,
       soundOn: this.soundOn,
       vibrationOn: this.vibrationOn,
+      musicOn: this.musicOn,
     });
   }
 }

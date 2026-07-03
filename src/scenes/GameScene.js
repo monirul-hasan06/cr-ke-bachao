@@ -8,18 +8,27 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.crName = data.crName || "CR";
     this.playerName = data.playerName || "YOU";
+
     const rawEnemyNames = Array.isArray(data.enemyNames)
       ? data.enemyNames
-      : (data.enemyName ? [data.enemyName] : []);
-    this.enemyNames = [...new Set(rawEnemyNames
-      .map((name) => String(name).trim().slice(0, 12))
-      .filter(Boolean)
-    )];
+      : data.enemyName
+        ? [data.enemyName]
+        : [];
+
+    this.enemyNames = [
+      ...new Set(
+        rawEnemyNames
+          .map((name) => String(name).trim().slice(0, 12))
+          .filter(Boolean)
+      ),
+    ];
+
     this.crGender = data.crGender || "male";
     this.playerGender = data.playerGender || "male";
     this.theme = data.theme || "classroom";
     this.soundOn = data.soundOn !== false;
     this.vibrationOn = data.vibrationOn !== false;
+    this.musicOn = data.musicOn !== false;
   }
 
   create() {
@@ -49,10 +58,23 @@ export default class GameScene extends Phaser.Scene {
     this.enemyNameQueue = Phaser.Utils.Array.Shuffle([...this.enemyNames]);
     this.enemySpawnCount = 0;
 
+    this.musicKeys = [
+      "music_Akromon",
+      "music_Bhrom",
+      "music_Eto_Kichu_Bojho",
+      "music_Keu_Karo_Noy",
+      "music_Odommo",
+      "music_Ong_Bong_Chhong",
+      "music_Onnosomoy",
+    ];
+
+    this.currentMusicIndex = 0;
+    this.shuffledMusicKeys = Phaser.Utils.Array.Shuffle([...this.musicKeys]);
+
     this.add.image(width / 2, height / 2, `bg_${this.theme}`).setDisplaySize(width, height);
     this.darkOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.10).setDepth(5);
-    this.createLighting();
 
+    this.createLighting();
     this.createCharacters();
     this.createUI();
     this.createControls();
@@ -61,18 +83,18 @@ export default class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys.P.on("down", () => this.pauseGame());
 
-    if (this.soundOn) {
-      this.bgMusic = this.sound.add("snd_bg", { volume: 0.08, loop: true });
-      this.bgMusic.play();
+    if (this.musicOn) {
+      this.playNextMusic();
     }
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      if (this.bgMusic) this.bgMusic.stop();
+      this.stopBackgroundMusic();
     });
   }
 
   createLighting() {
     const { width, height } = this.scale;
+
     this.vignette = this.add.graphics().setDepth(150);
     this.vignette.fillStyle(0x000000, 0.24);
     this.vignette.fillRect(0, 0, width, height);
@@ -80,10 +102,11 @@ export default class GameScene extends Phaser.Scene {
     const maskShape = this.make.graphics({ x: 0, y: 0, add: false });
     maskShape.fillStyle(0xffffff);
     maskShape.fillEllipse(width / 2, height / 2 + 20, 610, 760);
+
     const mask = maskShape.createGeometryMask();
     mask.invertAlpha = true;
-    this.vignette.setMask(mask);
 
+    this.vignette.setMask(mask);
     this.actionGlow = this.add.graphics().setDepth(151);
   }
 
@@ -97,13 +120,21 @@ export default class GameScene extends Phaser.Scene {
     this.cr = this.add.sprite(width / 2, height / 2, crKey).setDepth(20);
     this.cr.setDisplaySize(96, 122);
     this.cr.radius = 42;
-    this.crNameText = this.add.text(this.cr.x, this.cr.y - 88, this.crName, this.nameStyle()).setOrigin(0.5).setDepth(70);
+
+    this.crNameText = this.add
+      .text(this.cr.x, this.cr.y - 88, this.crName, this.nameStyle())
+      .setOrigin(0.5)
+      .setDepth(70);
 
     this.playerShadow = this.add.ellipse(width / 2, height / 2 + 260, 106, 32, 0x000000, 0.42).setDepth(19);
     this.player = this.add.sprite(width / 2, height / 2 + 210, playerKey).setDepth(30);
     this.player.setDisplaySize(108, 138);
     this.player.radius = 44;
-    this.playerNameText = this.add.text(this.player.x, this.player.y - 92, this.playerName, this.nameStyle()).setOrigin(0.5).setDepth(70);
+
+    this.playerNameText = this.add
+      .text(this.player.x, this.player.y - 92, this.playerName, this.nameStyle())
+      .setOrigin(0.5)
+      .setDepth(70);
 
     this.tweens.add({
       targets: [this.cr, this.crShadow],
@@ -145,7 +176,11 @@ export default class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(200);
 
     this.healthBg = this.add.rectangle(width - 170, 38, 250, 20, 0x334155, 10).setDepth(200);
-    this.healthBar = this.add.rectangle(width - 295, 38, 250, 20, 0x22c55e, 10).setOrigin(0, 0.5).setDepth(201);
+
+    this.healthBar = this.add
+      .rectangle(width - 295, 38, 250, 20, 0x22c55e, 10)
+      .setOrigin(0, 0.5)
+      .setDepth(201);
 
     this.add.text(width - 170, 70, "CR Health", {
       fontSize: "18px",
@@ -155,7 +190,12 @@ export default class GameScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(200);
 
-    this.pauseBtn = this.add.image(width - 54, 125, "ui_pause").setDisplaySize(46, 46).setInteractive({ useHandCursor: true }).setDepth(220);
+    this.pauseBtn = this.add
+      .image(width - 54, 125, "ui_pause")
+      .setDisplaySize(46, 46)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(220);
+
     this.pauseBtn.on("pointerdown", () => this.pauseGame());
 
     this.powerText = this.add.text(width / 2, 70, "", {
@@ -199,11 +239,15 @@ export default class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (pointer) => {
-      if (this.joy.active && pointer.id === this.joy.pointerId) this.updateJoystick(pointer);
+      if (this.joy.active && pointer.id === this.joy.pointerId) {
+        this.updateJoystick(pointer);
+      }
     });
 
     this.input.on("pointerup", (pointer) => {
-      if (this.joy.active && pointer.id === this.joy.pointerId) this.resetJoystick();
+      if (this.joy.active && pointer.id === this.joy.pointerId) {
+        this.resetJoystick();
+      }
     });
 
     this.input.on("pointerupoutside", () => this.resetJoystick());
@@ -232,6 +276,7 @@ export default class GameScene extends Phaser.Scene {
 
   update(time, delta) {
     if (this.hitPause) return;
+
     const dt = delta / 1000;
 
     this.attackCooldown = Math.max(0, this.attackCooldown - delta);
@@ -248,7 +293,10 @@ export default class GameScene extends Phaser.Scene {
     if (this.spawnTimer >= this.spawnDelay) {
       this.spawnTimer = 0;
       this.spawnEnemy(false);
-      if (this.level > 3 && Math.random() < 0.25) this.spawnEnemy(false);
+
+      if (this.level > 3 && Math.random() < 0.25) {
+        this.spawnEnemy(false);
+      }
     }
 
     if (this.powerTimer >= 10) {
@@ -262,7 +310,10 @@ export default class GameScene extends Phaser.Scene {
       this.wave++;
       this.spawnDelay = Math.max(330, this.spawnDelay - 55);
       this.showToast(`Level ${this.level}`);
-      if (this.level % 5 === 0) this.spawnEnemy(true);
+
+      if (this.level % 5 === 0) {
+        this.spawnEnemy(true);
+      }
     }
 
     this.handleMovement(dt);
@@ -286,17 +337,20 @@ export default class GameScene extends Phaser.Scene {
     y += this.joy.y;
 
     const len = Math.sqrt(x * x + y * y);
+
     if (len > 0) {
       x /= len;
       y /= len;
       this.moveVector.set(x, y);
 
       const speed = 285 * (this.speedTime > 0 ? 1.35 : 1);
+
       this.player.x += x * speed * dt;
       this.player.y += y * speed * dt;
 
       this.player.setTexture(`${this.playerGender}_player_walk`);
       this.player.setFlipX(x < 0);
+
       if (this.footstepTimer <= 0) {
         this.footstepTimer = 420;
         this.playSound("snd_footstep", 0.12);
@@ -315,36 +369,66 @@ export default class GameScene extends Phaser.Scene {
   spawnEnemy(isBoss = false) {
     const { width, height } = this.scale;
     const side = Phaser.Math.Between(0, 3);
+
     let x = 0;
     let y = 0;
 
-    if (side === 0) { x = Phaser.Math.Between(0, width); y = -80; }
-    else if (side === 1) { x = width + 80; y = Phaser.Math.Between(100, height - 100); }
-    else if (side === 2) { x = Phaser.Math.Between(0, width); y = height + 80; }
-    else { x = -80; y = Phaser.Math.Between(100, height - 100); }
+    if (side === 0) {
+      x = Phaser.Math.Between(0, width);
+      y = -80;
+    } else if (side === 1) {
+      x = width + 80;
+      y = Phaser.Math.Between(100, height - 100);
+    } else if (side === 2) {
+      x = Phaser.Math.Between(0, width);
+      y = height + 80;
+    } else {
+      x = -80;
+      y = Phaser.Math.Between(100, height - 100);
+    }
 
     const gender = Math.random() > 0.5 ? "male" : "female";
     const typeRoll = Math.random();
+
     let type = "normal";
+
     if (typeRoll > 0.82) type = "fast";
     if (typeRoll < 0.14 && this.level > 2) type = "tank";
 
     const key = isBoss ? "boss_enemy" : `${gender}_enemy_walk`;
     const enemy = this.add.sprite(x, y, key).setDepth(isBoss ? 27 : 25);
+
     enemy.gender = gender;
     enemy.type = isBoss ? "boss" : type;
     enemy.isBoss = isBoss;
     enemy.radius = isBoss ? 72 : 42;
     enemy.hp = isBoss ? 8 + this.level : type === "tank" ? 2 : 1;
     enemy.maxHp = enemy.hp;
-    enemy.speed = (90 + this.level * 7 + Phaser.Math.Between(0, 35)) * (type === "fast" ? 1.35 : type === "tank" ? 0.72 : 1) * (isBoss ? 0.62 : 1);
+    enemy.speed =
+      (90 + this.level * 7 + Phaser.Math.Between(0, 35)) *
+      (type === "fast" ? 1.35 : type === "tank" ? 0.72 : 1) *
+      (isBoss ? 0.62 : 1);
+
     enemy.setDisplaySize(isBoss ? 160 : 92, isBoss ? 190 : 118);
-    enemy.shadow = this.add.ellipse(x, y + (isBoss ? 66 : 48), isBoss ? 150 : 92, isBoss ? 42 : 28, 0x000000, 0.42).setDepth(18);
+
+    enemy.shadow = this.add
+      .ellipse(
+        x,
+        y + (isBoss ? 66 : 48),
+        isBoss ? 150 : 92,
+        isBoss ? 42 : 28,
+        0x000000,
+        0.42
+      )
+      .setDepth(18);
 
     const chosenName = this.pickEnemyName(isBoss);
     enemy.customName = chosenName;
+
     const labelText = isBoss
-      ? (chosenName ? `Boss ${chosenName}` : "Boss")
+      ? chosenName
+        ? `Boss ${chosenName}`
+        : "Boss"
       : chosenName;
 
     if (labelText) {
@@ -357,6 +441,8 @@ export default class GameScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(82);
     }
 
+    // Tap-to-kill disabled.
+    // Enemy will die only by slash button or keyboard Space attack.
     // enemy.setInteractive({ useHandCursor: true });
     // enemy.on("pointerdown", (pointer) => {
     //   pointer.event?.stopPropagation?.();
@@ -373,23 +459,17 @@ export default class GameScene extends Phaser.Scene {
     this.enemies.push(enemy);
   }
 
-
   pickEnemyName(isBoss = false) {
     if (!this.enemyNames || this.enemyNames.length === 0) return "";
 
     this.enemySpawnCount++;
 
-    // Keep nameless/default enemies mixed with named enemies.
-    // Every few spawns intentionally returns blank.
     if (!isBoss && this.enemySpawnCount % 3 === 0) return "";
 
-    // Make sure every name the player added appears at least once.
     if (this.enemyNameQueue.length > 0) {
       return this.enemyNameQueue.shift();
     }
 
-    // After all names appeared once, continue a random mix:
-    // about 60% named enemies and 40% nameless default enemies.
     if (!isBoss && Math.random() < 0.40) return "";
 
     return Phaser.Utils.Array.GetRandom(this.enemyNames);
@@ -397,13 +477,19 @@ export default class GameScene extends Phaser.Scene {
 
   createBossBar(enemy) {
     enemy.barBg = this.add.rectangle(enemy.x, enemy.y - 105, 120, 10, 0x111827, 0.9).setDepth(80);
-    enemy.bar = this.add.rectangle(enemy.x - 60, enemy.y - 105, 120, 10, 0xfacc15, 1).setOrigin(0, 0.5).setDepth(81);
+
+    enemy.bar = this.add
+      .rectangle(enemy.x - 60, enemy.y - 105, 120, 10, 0xfacc15, 1)
+      .setOrigin(0, 0.5)
+      .setDepth(81);
   }
 
   bossEntryEffect() {
     if (!this.darkOverlay) return;
+
     this.darkOverlay.setAlpha(0.35);
     this.cameras.main.shake(360, 0.012);
+
     this.time.delayedCall(460, () => {
       if (this.darkOverlay) this.darkOverlay.setAlpha(0.10);
     });
@@ -412,15 +498,23 @@ export default class GameScene extends Phaser.Scene {
   handleEnemies(dt) {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const enemy = this.enemies[i];
+
       if (!enemy.active || enemy.dying) continue;
 
       const angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.cr.x, this.cr.y);
       const freezeMult = this.freezeTime > 0 ? 0.16 : 1;
+
       enemy.x += Math.cos(angle) * enemy.speed * freezeMult * dt;
       enemy.y += Math.sin(angle) * enemy.speed * freezeMult * dt;
       enemy.setFlipX(Math.cos(angle) < 0);
-      if (enemy.shadow) enemy.shadow.setPosition(enemy.x, enemy.y + (enemy.isBoss ? 66 : 48));
-      if (enemy.nameText) enemy.nameText.setPosition(enemy.x, enemy.y - (enemy.isBoss ? 112 : 76));
+
+      if (enemy.shadow) {
+        enemy.shadow.setPosition(enemy.x, enemy.y + (enemy.isBoss ? 66 : 48));
+      }
+
+      if (enemy.nameText) {
+        enemy.nameText.setPosition(enemy.x, enemy.y - (enemy.isBoss ? 112 : 76));
+      }
 
       if (!enemy.isBoss && Phaser.Math.Distance.Between(enemy.x, enemy.y, this.player.x, this.player.y) < 175) {
         enemy.setTexture(`${enemy.gender}_enemy_attack`);
@@ -458,17 +552,19 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  // This function is kept for future use only.
+  // Currently enemy tap-to-kill is disabled from spawnEnemy().
   tapAttackEnemy(enemy) {
     if (!enemy || !enemy.active || enemy.dying) return;
 
     const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, enemy.x, enemy.y);
+
     this.moveVector.set(Math.cos(angle), Math.sin(angle));
     this.player.setFlipX(Math.cos(angle) < 0);
     this.player.setTexture(`${this.playerGender}_player_slash`);
 
     this.weaponSound(enemy.isBoss);
     this.hitStop(enemy.isBoss ? 55 : 35);
-
     this.vibrate(enemy.isBoss ? 60 : 35);
 
     this.playerLunge(angle);
@@ -490,10 +586,10 @@ export default class GameScene extends Phaser.Scene {
       } else {
         this.showFloatingText(`Boss HP ${enemy.hp}`, enemy.x, enemy.y - 70, "#facc15");
       }
+
       return;
     }
 
-    // Normal enemies die with one tap.
     this.killEnemy(enemy, enemy.type === "fast" ? 30 : enemy.type === "tank" ? 40 : 18, angle);
   }
 
@@ -506,9 +602,11 @@ export default class GameScene extends Phaser.Scene {
 
     const angle = Math.atan2(this.moveVector.y, this.moveVector.x);
     const slash = this.add.graphics().setDepth(90);
+
     slash.fillStyle(0xef4444, 0.20);
     slash.slice(this.player.x, this.player.y, 170, angle - 1.0, angle + 1.0, false);
     slash.fillPath();
+
     slash.lineStyle(9, 0xffffff, 0.65);
     slash.beginPath();
     slash.arc(this.player.x, this.player.y, 170, angle - 1.0, angle + 1.0);
@@ -528,27 +626,38 @@ export default class GameScene extends Phaser.Scene {
 
     for (const enemy of this.enemies) {
       if (!enemy.active || enemy.dying) continue;
+
       const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
+
       if (dist < 160 + enemy.radius) {
         const dx = enemy.x - this.player.x;
         const dy = enemy.y - this.player.y;
         const len = Math.sqrt(dx * dx + dy * dy) || 1;
         const dot = (dx / len) * this.moveVector.x + (dy / len) * this.moveVector.y;
-        if (dot > -0.35 || dist < 85) toHit.push(enemy);
+
+        if (dot > -0.35 || dist < 85) {
+          toHit.push(enemy);
+        }
       }
     }
 
     for (const enemy of toHit) {
       if (!enemy.active || enemy.dying) continue;
+
       hit++;
+
       const enemyAngle = Phaser.Math.Angle.Between(this.player.x, this.player.y, enemy.x, enemy.y);
 
       this.createRedHitEffect(enemy.x, enemy.y, enemy.isBoss ? 16 : 10);
+
       if (enemy.isBoss) {
         enemy.hp -= 1;
         this.hitEnemy(enemy, enemyAngle, true);
         this.updateBossBar(enemy);
-        if (enemy.hp <= 0) this.killEnemy(enemy, 180, enemyAngle);
+
+        if (enemy.hp <= 0) {
+          this.killEnemy(enemy, 180, enemyAngle);
+        }
       } else {
         this.killEnemy(enemy, enemy.type === "fast" ? 25 : enemy.type === "tank" ? 35 : 15, enemyAngle);
       }
@@ -589,8 +698,10 @@ export default class GameScene extends Phaser.Scene {
     enemy.dying = true;
     this.kills++;
     this.score += gainedScore;
+
     this.showFloatingText(`+${gainedScore}`, enemy.x, enemy.y, "#fde68a");
     this.createDeathSmoke(enemy.x, enemy.y);
+
     this.cameras.main.shake(enemy.isBoss ? 160 : 90, enemy.isBoss ? 0.012 : 0.007);
 
     this.tweens.add({
@@ -609,7 +720,10 @@ export default class GameScene extends Phaser.Scene {
 
   removeEnemy(enemy) {
     const index = this.enemies.indexOf(enemy);
-    if (index !== -1) this.enemies.splice(index, 1);
+
+    if (index !== -1) {
+      this.enemies.splice(index, 1);
+    }
 
     if (enemy.barBg) enemy.barBg.destroy();
     if (enemy.bar) enemy.bar.destroy();
@@ -629,9 +743,14 @@ export default class GameScene extends Phaser.Scene {
       this.actionGlow.clear();
       this.actionGlow.fillStyle(0xef4444, 0.13);
       this.actionGlow.fillCircle(x, y, size + 48);
-      this.time.delayedCall(170, () => this.actionGlow && this.actionGlow.clear());
+
+      this.time.delayedCall(170, () => {
+        if (this.actionGlow) this.actionGlow.clear();
+      });
     }
+
     const g = this.add.graphics().setDepth(120);
+
     g.lineStyle(15, 0xffffff, 0.82);
     g.beginPath();
     g.arc(x, y, size, angle - 1.15, angle + 1.15);
@@ -679,7 +798,10 @@ export default class GameScene extends Phaser.Scene {
 
   createDeathSmoke(x, y) {
     for (let i = 0; i < 8; i++) {
-      const smoke = this.add.circle(x, y, Phaser.Math.Between(8, 18), 0x111827, 0.35).setDepth(100);
+      const smoke = this.add
+        .circle(x, y, Phaser.Math.Between(8, 18), 0x111827, 0.35)
+        .setDepth(100);
+
       const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
       const distance = Phaser.Math.Between(25, 80);
 
@@ -695,15 +817,21 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-
   weaponSound(heavy = false) {
     this.playSound("snd_whoosh", heavy ? 0.48 : 0.42);
-    this.time.delayedCall(42, () => this.playSound(heavy ? "snd_heavy_hit" : "snd_hit", heavy ? 0.42 : 0.35));
-    this.time.delayedCall(70, () => this.playSound("snd_damage", heavy ? 0.12 : 0.08));
+
+    this.time.delayedCall(42, () => {
+      this.playSound(heavy ? "snd_heavy_hit" : "snd_hit", heavy ? 0.42 : 0.35);
+    });
+
+    this.time.delayedCall(70, () => {
+      this.playSound("snd_damage", heavy ? 0.12 : 0.08);
+    });
   }
 
   hitStop(ms = 35) {
     this.hitPause = true;
+
     this.time.delayedCall(ms, () => {
       this.hitPause = false;
     });
@@ -727,8 +855,10 @@ export default class GameScene extends Phaser.Scene {
         .setAlpha(0.78)
         .setRotation(angle + Phaser.Math.FloatBetween(-0.7, 0.7))
         .setDepth(114);
+
       const a = angle + Phaser.Math.FloatBetween(-1.0, 1.0);
       const distance = Phaser.Math.Between(30, 95);
+
       this.tweens.add({
         targets: spark,
         x: x + Math.cos(a) * distance,
@@ -748,9 +878,12 @@ export default class GameScene extends Phaser.Scene {
     if (this.player) this.player.setDepth(this.player.y);
     if (this.crShadow) this.crShadow.setDepth(this.cr.y - 10);
     if (this.playerShadow) this.playerShadow.setDepth(this.player.y - 10);
+
     for (const enemy of this.enemies) {
       if (!enemy.active) continue;
+
       enemy.setDepth(enemy.y);
+
       if (enemy.shadow) enemy.shadow.setDepth(enemy.y - 10);
       if (enemy.nameText) enemy.nameText.setDepth(enemy.y + 12);
     }
@@ -760,13 +893,21 @@ export default class GameScene extends Phaser.Scene {
     if (this.dashCooldown > 0) return;
 
     this.dashCooldown = 950;
+
     this.player.x += this.moveVector.x * 125;
     this.player.y += this.moveVector.y * 125;
+
     this.player.x = Phaser.Math.Clamp(this.player.x, 50, this.scale.width - 50);
     this.player.y = Phaser.Math.Clamp(this.player.y, 135, this.scale.height - 70);
+
     this.cameras.main.shake(60, 0.005);
 
-    const ghost = this.add.sprite(this.player.x - this.moveVector.x * 50, this.player.y - this.moveVector.y * 50, `${this.playerGender}_player_idle`)
+    const ghost = this.add
+      .sprite(
+        this.player.x - this.moveVector.x * 50,
+        this.player.y - this.moveVector.y * 50,
+        `${this.playerGender}_player_idle`
+      )
       .setDisplaySize(108, 138)
       .setAlpha(0.35)
       .setDepth(18);
@@ -844,6 +985,7 @@ export default class GameScene extends Phaser.Scene {
 
   flashCR() {
     this.cr.setTint(0xffb4b4);
+
     this.time.delayedCall(130, () => {
       if (this.cr.active) this.cr.clearTint();
     });
@@ -852,6 +994,7 @@ export default class GameScene extends Phaser.Scene {
   updateLabels() {
     this.crNameText.setPosition(this.cr.x, this.cr.y - 88);
     this.playerNameText.setPosition(this.player.x, this.player.y - 92);
+
     if (this.crShadow) this.crShadow.setPosition(this.cr.x, this.cr.y + 48);
     if (this.playerShadow) this.playerShadow.setPosition(this.player.x, this.player.y + 50);
   }
@@ -862,22 +1005,30 @@ export default class GameScene extends Phaser.Scene {
 
     this.healthBar.width = Math.max(0, 250 * (this.health / 100));
 
-    if (this.health > 55) this.healthBar.setFillStyle(0x22c55e);
-    else if (this.health > 25) this.healthBar.setFillStyle(0xf97316);
-    else this.healthBar.setFillStyle(0xef4444);
+    if (this.health > 55) {
+      this.healthBar.setFillStyle(0x22c55e);
+    } else if (this.health > 25) {
+      this.healthBar.setFillStyle(0xf97316);
+    } else {
+      this.healthBar.setFillStyle(0xef4444);
+    }
 
     const powers = [];
+
     if (this.shieldTime > 0) powers.push(`Shield ${Math.ceil(this.shieldTime)}s`);
     if (this.freezeTime > 0) powers.push(`Freeze ${Math.ceil(this.freezeTime)}s`);
     if (this.speedTime > 0) powers.push(`Speed ${Math.ceil(this.speedTime)}s`);
+
     this.powerText.setText(powers.join("   "));
 
     if (this.shieldTime > 0) {
       if (!this.shieldCircle) {
-        this.shieldCircle = this.add.circle(this.cr.x, this.cr.y, 62, 0x93c5fd, 0.15)
+        this.shieldCircle = this.add
+          .circle(this.cr.x, this.cr.y, 62, 0x93c5fd, 0.15)
           .setStrokeStyle(4, 0x93c5fd, 0.75)
           .setDepth(19);
       }
+
       this.shieldCircle.setPosition(this.cr.x, this.cr.y);
       this.shieldCircle.setVisible(true);
     } else if (this.shieldCircle) {
@@ -913,13 +1064,58 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  playNextMusic() {
+    if (!this.musicOn) return;
+    if (!this.shuffledMusicKeys || this.shuffledMusicKeys.length === 0) return;
+
+    if (this.bgMusic) {
+      this.bgMusic.stop();
+      this.bgMusic.destroy();
+      this.bgMusic = null;
+    }
+
+    const musicKey = this.shuffledMusicKeys[this.currentMusicIndex];
+
+    this.bgMusic = this.sound.add(musicKey, {
+      volume: 0.22,
+      loop: false,
+    });
+
+    this.bgMusic.play();
+
+    this.bgMusic.once("complete", () => {
+      this.currentMusicIndex++;
+
+      if (this.currentMusicIndex >= this.shuffledMusicKeys.length) {
+        this.currentMusicIndex = 0;
+        this.shuffledMusicKeys = Phaser.Utils.Array.Shuffle([...this.musicKeys]);
+      }
+
+      this.playNextMusic();
+    });
+  }
+
+  stopBackgroundMusic() {
+    if (this.bgMusic) {
+      this.bgMusic.stop();
+      this.bgMusic.destroy();
+      this.bgMusic = null;
+    }
+  }
+
   playSound(key, volume = 0.3) {
-    if (this.soundOn) this.sound.play(key, { volume });
+    if (this.soundOn) {
+      this.sound.play(key, { volume });
+    }
   }
 
   pauseGame() {
-    if (this.bgMusic) this.bgMusic.pause();
+    if (this.bgMusic) {
+      this.bgMusic.pause();
+    }
+
     this.scene.pause();
+
     this.scene.launch("GameOverScene", {
       paused: true,
       score: this.score,
@@ -934,12 +1130,15 @@ export default class GameScene extends Phaser.Scene {
         playerGender: this.playerGender,
         theme: this.theme,
         soundOn: this.soundOn,
-      vibrationOn: this.vibrationOn,
+        vibrationOn: this.vibrationOn,
+        musicOn: this.musicOn,
       },
     });
   }
 
   endGame() {
+    this.stopBackgroundMusic();
+
     if (this.score > this.highScore) {
       this.highScore = this.score;
       localStorage.setItem("crHighScoreV3", String(this.highScore));
@@ -959,7 +1158,8 @@ export default class GameScene extends Phaser.Scene {
         playerGender: this.playerGender,
         theme: this.theme,
         soundOn: this.soundOn,
-      vibrationOn: this.vibrationOn,
+        vibrationOn: this.vibrationOn,
+        musicOn: this.musicOn,
       },
     });
   }
