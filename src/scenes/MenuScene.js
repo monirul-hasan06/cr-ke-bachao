@@ -14,6 +14,7 @@ export default class MenuScene extends Phaser.Scene {
     this.soundOn = localStorage.getItem("crSoundOn") !== "false";
     this.vibrationOn = localStorage.getItem("crVibrationOn") !== "false";
     this.musicOn = localStorage.getItem("crMusicOn") !== "false";
+    this.menuMusicKey = "music_bg";
     this.enemyNames = [];
 
     this.bg = this.add
@@ -137,6 +138,12 @@ export default class MenuScene extends Phaser.Scene {
         localStorage.setItem("crMusicOn", String(this.musicOn));
         this.musicBtn.text.setText(this.musicOn ? "Music: ON" : "Music: OFF");
         this.playClick();
+
+        if (this.musicOn) {
+          this.startMenuMusic();
+        } else {
+          this.stopMenuMusic();
+        }
       },
       245
     );
@@ -200,6 +207,12 @@ export default class MenuScene extends Phaser.Scene {
 
     this.refreshButtons();
     this.refreshNameList();
+
+    if (this.musicOn) {
+      this.time.delayedCall(300, () => {
+        this.startMenuMusic();
+      });
+    }
   }
 
   labelStyle() {
@@ -235,6 +248,43 @@ export default class MenuScene extends Phaser.Scene {
     text.setInteractive({ useHandCursor: true }).on("pointerdown", run);
 
     return { bg, text };
+  }
+
+  startMenuMusic() {
+    if (!this.musicOn) return;
+
+    if (!this.cache.audio.exists(this.menuMusicKey)) {
+      console.warn(`Music not loaded: ${this.menuMusicKey}`);
+      this.showMenuMessage("Music file not loaded");
+      return;
+    }
+
+    const existingMusic = this.sound.get(this.menuMusicKey);
+
+    if (existingMusic && existingMusic.isPlaying) {
+      this.bgMusic = existingMusic;
+      return;
+    }
+
+    this.bgMusic = this.sound.add(this.menuMusicKey, {
+      volume: 0.18,
+      loop: true,
+    });
+
+    this.bgMusic.play();
+  }
+
+  stopMenuMusic() {
+    const existingMusic = this.sound.get(this.menuMusicKey);
+
+    if (existingMusic) {
+      existingMusic.stop();
+      existingMusic.destroy();
+    }
+
+    if (this.bgMusic) {
+      this.bgMusic = null;
+    }
   }
 
   addEnemyName() {

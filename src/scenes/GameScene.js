@@ -58,13 +58,11 @@ export default class GameScene extends Phaser.Scene {
     this.enemyNameQueue = Phaser.Utils.Array.Shuffle([...this.enemyNames]);
     this.enemySpawnCount = 0;
 
-    this.musicKeys = ["music_Odommo"];
-
-    this.currentMusicIndex = 0;
-    this.shuffledMusicKeys = Phaser.Utils.Array.Shuffle([...this.musicKeys]);
-
     this.add.image(width / 2, height / 2, `bg_${this.theme}`).setDisplaySize(width, height);
-    this.darkOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.10).setDepth(5);
+
+    this.darkOverlay = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x000000, 0.10)
+      .setDepth(5);
 
     this.createLighting();
     this.createCharacters();
@@ -75,12 +73,9 @@ export default class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys.P.on("down", () => this.pauseGame());
 
-    if (this.musicOn) {
-      this.playNextMusic();
-    }
-
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.stopBackgroundMusic();
+      // Background music is controlled from MenuScene.
+      // Do not stop or destroy music here.
     });
   }
 
@@ -108,7 +103,10 @@ export default class GameScene extends Phaser.Scene {
     const crKey = this.crGender === "female" ? "female_cr" : "male_cr";
     const playerKey = `${this.playerGender}_player_idle`;
 
-    this.crShadow = this.add.ellipse(width / 2, height / 2 + 48, 92, 28, 0x000000, 0.38).setDepth(14);
+    this.crShadow = this.add
+      .ellipse(width / 2, height / 2 + 48, 92, 28, 0x000000, 0.38)
+      .setDepth(14);
+
     this.cr = this.add.sprite(width / 2, height / 2, crKey).setDepth(20);
     this.cr.setDisplaySize(96, 122);
     this.cr.radius = 42;
@@ -118,7 +116,10 @@ export default class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(70);
 
-    this.playerShadow = this.add.ellipse(width / 2, height / 2 + 260, 106, 32, 0x000000, 0.42).setDepth(19);
+    this.playerShadow = this.add
+      .ellipse(width / 2, height / 2 + 260, 106, 32, 0x000000, 0.42)
+      .setDepth(19);
+
     this.player = this.add.sprite(width / 2, height / 2 + 210, playerKey).setDepth(30);
     this.player.setDisplaySize(108, 138);
     this.player.radius = 44;
@@ -657,12 +658,18 @@ export default class GameScene extends Phaser.Scene {
 
     if (hit > 0) {
       this.hitStop(35);
-      this.time.delayedCall(45, () => this.playSound(hit > 2 ? "snd_heavy_hit" : "snd_hit", 0.34));
+
+      this.time.delayedCall(45, () => {
+        this.playSound(hit > 2 ? "snd_heavy_hit" : "snd_hit", 0.34);
+      });
+
       this.cameras.main.shake(100, 0.008);
     }
 
     this.time.delayedCall(130, () => {
-      if (this.player.active) this.player.setTexture(`${this.playerGender}_player_idle`);
+      if (this.player.active) {
+        this.player.setTexture(`${this.playerGender}_player_idle`);
+      }
     });
   }
 
@@ -1056,45 +1063,6 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  playNextMusic() {
-    if (!this.musicOn) return;
-    if (!this.shuffledMusicKeys || this.shuffledMusicKeys.length === 0) return;
-
-    if (this.bgMusic) {
-      this.bgMusic.stop();
-      this.bgMusic.destroy();
-      this.bgMusic = null;
-    }
-
-    const musicKey = this.shuffledMusicKeys[this.currentMusicIndex];
-
-    this.bgMusic = this.sound.add(musicKey, {
-      volume: 0.22,
-      loop: false,
-    });
-
-    this.bgMusic.play();
-
-    this.bgMusic.once("complete", () => {
-      this.currentMusicIndex++;
-
-      if (this.currentMusicIndex >= this.shuffledMusicKeys.length) {
-        this.currentMusicIndex = 0;
-        this.shuffledMusicKeys = Phaser.Utils.Array.Shuffle([...this.musicKeys]);
-      }
-
-      this.playNextMusic();
-    });
-  }
-
-  stopBackgroundMusic() {
-    if (this.bgMusic) {
-      this.bgMusic.stop();
-      this.bgMusic.destroy();
-      this.bgMusic = null;
-    }
-  }
-
   playSound(key, volume = 0.3) {
     if (this.soundOn) {
       this.sound.play(key, { volume });
@@ -1102,10 +1070,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   pauseGame() {
-    if (this.bgMusic) {
-      this.bgMusic.pause();
-    }
-
     this.scene.pause();
 
     this.scene.launch("GameOverScene", {
@@ -1129,8 +1093,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   endGame() {
-    this.stopBackgroundMusic();
-
     if (this.score > this.highScore) {
       this.highScore = this.score;
       localStorage.setItem("crHighScoreV3", String(this.highScore));
