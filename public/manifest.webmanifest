@@ -1,7 +1,7 @@
 {
   "name": "CR কে বাঁচাও",
-  "short_name": "CR Game",
-  "description": "CR কে বাঁচাও — realistic cartoon mobile action web game",
+  "short_name": "CR Ke Bachao"
+  "description": "CR কে বাঁচাও",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
